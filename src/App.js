@@ -1,25 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import { Fragment } from 'react';
+import popup from './popup';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const Wrap = () => {
 
-export default App;
+    console.log('check:', popup());
+
+    return (
+
+        <Fragment>
+            <h2 class="title">取得 cookie</h2>
+            <button class="btn js-getCookie">Get cookies</button>
+            <button class="btn js-reset">清除</button>
+
+            <div class="wrap">
+                此頁面 cookie:
+                <div class="container"></div>
+            </div>
+        </Fragment>
+
+    );
+
+};
+
+export default Wrap;
