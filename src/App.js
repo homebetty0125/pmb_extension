@@ -1,25 +1,30 @@
-import { Fragment } from 'react';
-import popup from './popup';
+import { ThemeProvider, createGlobalStyle } from 'styled-components';
+import theme from './utils/theme';
+import Layout from './Layout';
+import Content from './Content';
 
-const Wrap = () => {
+const GlobalStyle = createGlobalStyle`
+    body {
+        min-width: 300px;
+        line-height: 1.4;
+        margin: 0;
+    }
+`;
 
-    console.log('check:', popup());
+const App = () => {
 
     return (
 
-        <Fragment>
-            <h2 class="title">取得 cookie</h2>
-            <button class="btn js-getCookie">Get cookies</button>
-            <button class="btn js-reset">清除</button>
+        <ThemeProvider theme={theme}>
+            <GlobalStyle />
 
-            <div class="wrap">
-                此頁面 cookie:
-                <div class="container"></div>
-            </div>
-        </Fragment>
+            <Layout>
+                <Content />
+            </Layout>
+        </ThemeProvider>
 
     );
 
 };
 
-export default Wrap;
+export default App;
