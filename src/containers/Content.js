@@ -1,21 +1,11 @@
 /*global chrome*/
 import { Fragment } from 'react';
 import { Button } from 'antd';
-import styled from 'styled-components';
 import WorkLogForm from '../components/WorkLogForm';
 import utilConst from '../utils/util.const';
 import useChromeCookies from '../utils/useChromeCookies';
 
 const { domain } = utilConst;
-
-const TitleLayout = styled.h3(({ theme }) => ({
-    borderBottom: `1px solid ${theme.palette.border}`,
-    marginBottom: '0',
-}));
-
-const WrapLayout = styled.div({
-    padding: '10px',
-});
 
 const Content = () => {
 
@@ -27,32 +17,28 @@ const Content = () => {
 
     return (
 
-        <Fragment>
-            <TitleLayout>PMB Extension</TitleLayout>
+        <main>
+            {
+                cookie?.value ? (
 
-            <div>
-                {
-                    cookie?.value ? (
+                    <WorkLogForm />
 
-                        <WorkLogForm />
+                ) : (
 
-                    ) : (
+                    <Fragment>
+                        <h4>你尚未登入，請先登入!!!</h4>
 
-                        <Fragment>
-                            <h4>你尚未登入，請先登入!!!</h4>
+                        <Button
+                            type="primary"
+                            onClick={handleClickLogin}
+                        >
+                            點我登入
+                        </Button>
+                    </Fragment>
 
-                            <Button
-                                type="primary"
-                                onClick={handleClickLogin}
-                            >
-                                點我登入
-                            </Button>
-                        </Fragment>
-
-                    )
-                }
-            </div>
-        </Fragment>
+                )
+            }
+        </main>
 
     );
 
