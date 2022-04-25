@@ -5,16 +5,27 @@ const FormLayout = styled.form({
     'h4.title': {
         marginBottom: '4px',
     },
+    '.row-workLog-type .field': {
+        height: 'auto',
+    },
+    '.formRow-radio': {
+        margin: '2px 0',
+    },
+    '.required': {
+        fontSize: '14px',
+        display: 'block',
+        marginTop: '-14px',
+    },
 });
 
 const FormRowLayout = styled(FormRow)(({ theme }) => ({
-    '&.row-workLog > .field': {
+    '&.row-workLog-hour > .field': {
         height: 'auto',
         display: 'flex',
         marginLeft: '-5px',
         marginRight: '-5px',
         '> *': {
-            flex: '1',
+            flex: '0 0 calc((100% / 2) - 10px)',
             margin: '0 5px',
         },
     },
@@ -24,7 +35,19 @@ const FormRowLayout = styled(FormRow)(({ theme }) => ({
     },
 }));
 
+const TaskRow = styled.div({
+    '.title': {
+        fontSize: '13px',
+        color: '#a6a6a6',
+        marginBottom: '0',
+    },
+    '.task-name': {
+        whiteSpace: 'break-spaces',
+    },
+});
+
 export {
     FormLayout,
     FormRowLayout,
+    TaskRow,
 };

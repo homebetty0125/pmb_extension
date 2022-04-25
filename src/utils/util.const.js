@@ -24,6 +24,12 @@ const utilConst = {
             name: '超時',
         },
     ],
+
+    // 錯誤訊息
+    errorMesg: {
+        error_required: '此欄位為必填',
+        error_pattern: '格式有誤',
+    },
 };
 
 export default utilConst;

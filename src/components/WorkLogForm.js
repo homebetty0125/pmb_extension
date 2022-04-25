@@ -1,11 +1,53 @@
 import { Fragment, useState } from 'react';
-import { Button, AutoComplete } from 'antd';
+import { Button, Radio, AutoComplete } from 'antd';
 import dayjs from 'dayjs';
 import { useForm } from 'react-hook-form';
 
-import { FormLayout, FormRowLayout } from './WorkLogFormLayout';
+import {
+    FormLayout,
+    FormRowLayout,
+    TaskRow,
+} from './WorkLogFormLayout';
 import FormRowStyle from './FormRowStyle';
 import FormRow from './FormRow';
+import Tags from './Tags';
+import util from '../utils/util';
+import utilConst from '../utils/util.const';
+import fakeData from '../utils/fakeData';
+
+const RadioGroup = Radio.Group;
+const { transferHourToTime } = util;
+const { workLogTypes, errorMesg } = utilConst;
+
+// 整理成 Ant Design 的結構
+const arrangeList = (data) => data.reduce((acc, {
+    projectName,
+    taskId,
+    taskName,
+}) => {
+
+    acc.push({
+        value: `${String(taskId)}_${taskName}_${projectName}`,
+        label: (
+            <TaskRow>
+                <h4 className="title">{projectName}</h4>
+                <div className="task-name">{taskName}</div>
+            </TaskRow>
+        ),
+        // label: `${taskName} (${projectName})`,
+    });
+
+    return acc;
+
+}, []);
+
+// Autocomplete filter 事件
+const handleFilterOption = (inputVal, option) => {
+
+    const regex = new RegExp(inputVal);
+    return regex.test(option.value);
+
+};
 
 const WorkLogForm = () => {
 
@@ -18,16 +60,47 @@ const WorkLogForm = () => {
 
     // State
     const [type, setType] = useState('');
+    const [checking, setChecking] = useState(false);
+    const [selected, setSelected] = useState('');
 
     // 工時種類
     const handleWorkLogTypeChanged = ({ target }) => {
 
         setType(target.value);
+        setChecking(false);
+
+    };
+
+    // Autocomplete change 事件
+    const handleChangeOption = (value) => {
+
+        // 給畫面用
+        setSelected({
+            ...selected,
+            assignee: value,
+        });
 
     };
 
     // 送資料
     const handleReqData = (reqData) => {
+
+        const today = dayjs().format('YYYY-MM-DD');
+
+        reqData = {
+            ...reqData,
+            taskId: '',
+            workLogStartDate: today,
+            workLogEndDate: today,
+            workLogType: type,
+            workLogHours: transferHourToTime(reqData.hour, reqData.minute),
+        };
+
+        delete reqData.hour;
+        delete reqData.minute;
+
+        setChecking(!type);
+        if (!type) return;
 
         console.log('reqData:', reqData);
 
@@ -44,13 +117,31 @@ const WorkLogForm = () => {
                     {dayjs().format('YYYY-MM-DD (dd)')}
                 </div>
 
+                <FormRow
+                    labelTitle="專案項目"
+                    className="row-my-tasks"
+                    required
+                    noBorder
+                >
+                    <AutoComplete
+                        allowClear={true}
+                        placeholder="允許輸入項目或專案名稱"
+                        options={arrangeList(fakeData)}
+                        // value={(selected.assignee === '') ? '' : selected.assignee?.split('_')[1]}
+                        onChange={handleChangeOption}
+                        filterOption={handleFilterOption}
+                    />
+                </FormRow>
+
                 <FormRowLayout
+                    name="hour"
+                    errors={errors}
                     labelTitle={
                         <Fragment>
                             工時 (必填) <span className="warning-text">(最小單位為 30 分鐘)</span>
                         </Fragment>
                     }
-                    className="row-workLog"
+                    className="row-workLog-hour"
                     required
                     noBorder
                 >
@@ -66,10 +157,6 @@ const WorkLogForm = () => {
                         />
                     </span>
 
-                    {
-                        errors.hour && <div className="required">必填欄位</div>
-                    }
-
                     <select
                         className="label-minute"
                         name="minute"
@@ -82,14 +169,11 @@ const WorkLogForm = () => {
 
                 <FormRow
                     labelTitle="種類"
+                    className="row-workLog-type"
                     required
                     noBorder
                 >
-                    <RadioGroup
-                        name="logType"
-                        className="form-radios"
-                        onChange={handleWorkLogTypeChanged}
-                    >
+                    <RadioGroup onChange={handleWorkLogTypeChanged}>
                         {
                             workLogTypes.map(({
                                 id,
@@ -102,7 +186,7 @@ const WorkLogForm = () => {
                                 <Radio
                                     key={id}
                                     value={code}
-                                    className={code === 'estimate' ? 'estimate' : ''}
+                                    className="formRow-radio"
                                 >
                                     <span>{name}</span>
                                     <Tags
@@ -119,6 +203,8 @@ const WorkLogForm = () => {
                             ))
                         }
                     </RadioGroup>
+
+                    {checking && <div className="error-mesg">{errorMesg.error_required}</div>}
                 </FormRow>
 
                 <div className="row row-btns">

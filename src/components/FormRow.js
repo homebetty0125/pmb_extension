@@ -1,55 +1,62 @@
 import { Fragment } from 'react';
 import PropTypes from 'prop-types';
+import { ErrorMessage } from '@hookform/error-message';
+import utilConst from '../utils/util.const';
+
+const { errorMesg } = utilConst;
 
 const FormRow = ({
+    name,
     labelTitle,
-    required,
-    children,
-    error,
-    errorMesg,
     className,
-    notes,
     noBorder,
+    required,
+    errors,
+    children,
     ...rest
 }) => (
 
     <label
-        className={`row ${error ? 'hasError' : ''} ${className ? className : ''}`}
+        className={`row ${errors?.[name] ? 'hasError' : ''} ${className && className}`}
         {...rest}
     >
-        <Fragment>
-            <div className={`title ${required ? 'isRequired' : ''}`}>
-                {
-                    (typeof labelTitle === 'string') ? `${labelTitle}${required ? ' (必填)' : ''}` : labelTitle
-                }
-            </div>
-
-            <div className={`field ${noBorder ? 'noBorder' : ''}`}>{children}</div>
-
+        <div className={`title ${required ? 'isRequired' : ''}`}>
             {
-                // notes &&
-                //     <div className="notes">
-                //         <ExclamationCircleOutlined />{notes}
-                //     </div>
+                (typeof labelTitle === 'string') ? `${labelTitle}${required ? ' (必填)' : ''}` : labelTitle
             }
-        </Fragment>
-
+        </div>
+        <div className={`field ${noBorder ? 'noBorder' : ''}`}>{children}</div>
         {
-            // error && <ErrorMesg {...errorMesg ? { error: errorMesg } : null} />
+            errors?.[name] &&
+                <FormErrorMesg
+                    name={name}
+                    errors={errors}
+                />
         }
     </label>
+
+);
+
+// 錯誤訊息
+const FormErrorMesg = ({ name, errors }) => (
+
+    <ErrorMessage
+        name={name}
+        errors={errors}
+        message={errorMesg[`error_${errors[name]?.type}`]}
+        render={({ message }) => <p className="error-mesg">{message}</p>}
+    />
 
 );
 
 FormRow.defaultProps = {
     required: false,
     noBorder: false,
-    error: false,
-    // errorMesg: errorText,
     className: '',
 };
 
 FormRow.propTypes = {
+    name: PropTypes.string,
     className: PropTypes.string,
     labelTitle: PropTypes.oneOfType([
         PropTypes.string,
@@ -57,10 +64,16 @@ FormRow.propTypes = {
     ]),
     required: PropTypes.bool,
     noBorder: PropTypes.bool,
-    // error: PropTypes.bool,
-    // errorMesg: PropTypes.string,
+    errors: PropTypes.object,
     children: PropTypes.any.isRequired,
-    notes: PropTypes.string,
 };
 
-export default FormRow;
+FormErrorMesg.propTypes = {
+    name: PropTypes.string,
+    errors: PropTypes.object,
+};
+
+export {
+    FormRow as default,
+    FormErrorMesg,
+};

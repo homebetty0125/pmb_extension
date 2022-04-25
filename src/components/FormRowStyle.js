@@ -25,7 +25,7 @@ const FormRowStyle = createGlobalStyle`
             background-color: ${white};
             border: 1px solid ${({ theme }) => theme.palette.border};
             border-radius: 2px;
-            padding: 4px;
+            padding: 4px 8px;
             transition: all .3s ease-in-out;
             outline: 0;
             &:hover,
@@ -140,6 +140,11 @@ const FormRowStyle = createGlobalStyle`
         .noBorder select {
             border-color: ${red.primary};
         }
+    }
+    .error-mesg {
+        font-size: 14px;
+        color: #ef5350;
+        margin-top: 4px;
     }
 `;
 
