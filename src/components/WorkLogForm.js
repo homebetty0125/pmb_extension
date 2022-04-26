@@ -19,22 +19,33 @@ const RadioGroup = Radio.Group;
 const { transferHourToTime } = util;
 const { workLogTypes, errorMesg } = utilConst;
 
-// 整理成 Ant Design 的結構
+// 第一階段整理: project id 當 key
 const arrangeList = (data) => data.reduce((acc, {
+    projectId,
     projectName,
     taskId,
     taskName,
 }) => {
 
+    acc[projectId] = acc[projectId] || {};
+    acc[projectId].project = projectName;
+    acc[projectId].tasks = acc[projectId].tasks || [];
+    acc[projectId].tasks.push({
+        value: taskName,
+        label: taskName,
+    });
+    return acc;
+
+}, {});
+
+// 整理成 Ant Design 的結構
+const antdAutoCompleteOpts = (data) => Object.keys(data).reduce((acc, curr) => {
+
+    const obj = data[curr];
+
     acc.push({
-        value: `${String(taskId)}_${taskName}_${projectName}`,
-        label: (
-            <TaskRow>
-                <h4 className="title">{projectName}</h4>
-                <div className="task-name">{taskName}</div>
-            </TaskRow>
-        ),
-        // label: `${taskName} (${projectName})`,
+        label: obj.project,
+        options: obj.tasks,
     });
 
     return acc;
@@ -44,7 +55,10 @@ const arrangeList = (data) => data.reduce((acc, {
 // Autocomplete filter 事件
 const handleFilterOption = (inputVal, option) => {
 
-    const regex = new RegExp(inputVal);
+    console.log('inputVal:', inputVal);
+    console.log('option:', option);
+
+    const regex = new RegExp(`${inputVal}`, 'g');
     return regex.test(option.value);
 
 };
@@ -61,7 +75,7 @@ const WorkLogForm = () => {
     // State
     const [type, setType] = useState('');
     const [checking, setChecking] = useState(false);
-    const [selected, setSelected] = useState('');
+    const [selected, setSelected] = useState({ value : '' });
 
     // 工時種類
     const handleWorkLogTypeChanged = ({ target }) => {
@@ -71,13 +85,13 @@ const WorkLogForm = () => {
 
     };
 
-    // Autocomplete change 事件
+    // Autocomplete change 事件: 給畫面用
     const handleChangeOption = (value) => {
 
-        // 給畫面用
+        console.log('change value:', value);
         setSelected({
             ...selected,
-            assignee: value,
+            value,
         });
 
     };
@@ -106,6 +120,8 @@ const WorkLogForm = () => {
 
     };
 
+    // console.log('selected:', selected);
+
     return (
 
         <Fragment>
@@ -125,9 +141,9 @@ const WorkLogForm = () => {
                 >
                     <AutoComplete
                         allowClear={true}
-                        placeholder="允許輸入項目或專案名稱"
-                        options={arrangeList(fakeData)}
-                        // value={(selected.assignee === '') ? '' : selected.assignee?.split('_')[1]}
+                        placeholder="請輸入項目或專案名稱"
+                        options={antdAutoCompleteOpts(arrangeList(fakeData))}
+                        value={selected.value.split('_')[0]}
                         onChange={handleChangeOption}
                         filterOption={handleFilterOption}
                     />
