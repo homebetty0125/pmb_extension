@@ -1,10 +1,7 @@
 /*global chrome*/
 import { useState, useEffect } from 'react';
-import utilConst from './util.const';
 
-const { domain } = utilConst;
-
-export default function useChromeCookies () {
+export default function useChromeCookies() {
 
     // State
     const [cookie, setCookie] = useState(null);
@@ -20,8 +17,7 @@ export default function useChromeCookies () {
     const init = async () => {
 
         let [temp] = await chrome.cookies.getAll({
-            name: 'auth_token',
-            domain,
+            name: 'access_token',
         });
 
         setCookie(temp);

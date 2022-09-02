@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { ErrorMessage } from '@hookform/error-message';
 import utilConst from '../utils/util.const';

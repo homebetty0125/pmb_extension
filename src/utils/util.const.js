@@ -1,5 +1,6 @@
 const utilConst = {
-    domain: '192.168.1.65',
+    // domain: 'node.io',
+    domain: '192.168.8.65',
 
     // 工時
     workLogTypes: [

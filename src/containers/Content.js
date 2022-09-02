@@ -13,7 +13,7 @@ const Content = () => {
     const cookie = useChromeCookies();
 
     // 登入按鈕
-    const handleClickLogin = () => chrome.tabs.create({ url: `http://${domain}/auth/?/pmb/index` });
+    const handleClickLogin = () => chrome.tabs.create({ url: `http://${domain}/pmb` });
 
     return (
 

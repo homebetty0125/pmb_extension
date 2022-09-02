@@ -16,6 +16,11 @@ const FormLayout = styled.form({
         display: 'block',
         marginTop: '-14px',
     },
+    '.small-text': {
+        fontSize: '13px',
+        color: '#5c5c5c',
+        marginLeft: '4px',
+    },
 });
 
 const FormRowLayout = styled(FormRow)(({ theme }) => ({

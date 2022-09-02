@@ -1,3 +1,9 @@
+import axios from 'axios';
+import { message } from 'antd';
+import utilConst from './util.const';
+
+const { domain } = utilConst;
+
 /**
  * @author Betty
  * @param  {number} num1 - 小數點數字
@@ -29,20 +35,6 @@ const mul = (num1, num2) => {
     r2 = +(s2.replace('.', ''));
 
     return r1 * r2 / Math.pow(10, m);
-
-};
-
-const minus = (num1, num2) => {
-
-    let m = 0,
-        r1 = num1.toString().split('.')[1],
-        r2 = num2.toString().split('.')[1],
-        s1 = r1 ? r1.length : 0,
-        s2 = r2 ? r2.length : 0,
-        max = Math.max(s1, s2),
-        pow = Math.pow(10, max);
-
-    return ((num1 * pow) - (num2 * pow)) / pow;
 
 };
 
@@ -82,6 +74,61 @@ const add = (num1, num2) => {
 const Util = {
     /**
      * @author Betty
+     * @param  {object{} || string} service - 如果是字串，則為 service.url
+     *   @param {string} service.url
+     *   @param {string} [service.method = 'post']
+     *   @param {string} [service.dataType = 'json']
+     * @param  {object{}} reqData
+     * @param  {object{}} option
+     * @returns {promise}
+     */
+    serviceProxy: (service, option = {}) => {
+
+        // 回傳 promise
+        return new Promise((resolve, reject) => {
+
+            const authHeader = {
+                headers: {
+                    Authorization: `Bearer ${option.key}`,
+                },
+            };
+
+            axios({
+                baseURL: `http://${domain}/pmb-dev/api`,
+                url: service,
+                method: 'post',
+                ...option?.reqData && {
+                    data: option.reqData,
+                },
+                ...authHeader,
+            })
+            .then(
+                // result: 1
+                ({ data }) => {
+
+                    resolve(data.data);
+
+                },
+                // result: 0
+                ({ response }) => {
+
+                    const { data } = response;
+                    reject(message.error(data.message));
+
+                },
+            )
+            .catch((error) => {
+
+                console.log('error:', error);
+
+            });
+
+        });
+
+    },
+
+    /**
+     * @author Betty
      * @param {number} param1 - 小時
      * @param {number} param2 - 分鐘
      * @return {number}
@@ -108,7 +155,6 @@ const Util = {
         return { hour: rhour || 0, minute: rminute || 0 };
 
     },
-
 };
 
 export default Util;

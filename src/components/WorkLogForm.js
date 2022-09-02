@@ -1,19 +1,17 @@
-import { Fragment, useState } from 'react';
-import { Button, Radio, AutoComplete } from 'antd';
-import dayjs from 'dayjs';
+import { Fragment, useState, useEffect } from 'react';
+import { Button, Radio, AutoComplete, message } from 'antd';
 import { useForm } from 'react-hook-form';
+import dayjs from 'dayjs';
 
-import {
-    FormLayout,
-    FormRowLayout,
-    TaskRow,
-} from './WorkLogFormLayout';
+import { FormLayout, FormRowLayout } from './WorkLogFormLayout';
 import FormRowStyle from './FormRowStyle';
 import FormRow from './FormRow';
 import Tags from './Tags';
+
 import util from '../utils/util';
 import utilConst from '../utils/util.const';
-import fakeData from '../utils/fakeData';
+import Service from '../utils/util.service';
+import useChromeCookies from '../utils/useChromeCookies';
 
 const RadioGroup = Radio.Group;
 const { transferHourToTime } = util;
@@ -31,9 +29,10 @@ const arrangeList = (data) => data.reduce((acc, {
     acc[projectId].project = projectName;
     acc[projectId].tasks = acc[projectId].tasks || [];
     acc[projectId].tasks.push({
-        value: taskName,
         label: taskName,
+        value: `${taskId}_${taskName}`,
     });
+
     return acc;
 
 }, {});
@@ -55,27 +54,49 @@ const antdAutoCompleteOpts = (data) => Object.keys(data).reduce((acc, curr) => {
 // Autocomplete filter 事件
 const handleFilterOption = (inputVal, option) => {
 
-    console.log('inputVal:', inputVal);
-    console.log('option:', option);
-
-    const regex = new RegExp(`${inputVal}`, 'g');
+    const regex = new RegExp(`${inputVal}`, 'gi');
     return regex.test(option.value);
 
 };
 
+// fetch
+const fetchData = async(cookie) => {
+
+    return await Service.myTask(cookie);
+
+};
+
+//
 const WorkLogForm = () => {
+
+    // Custom Hook
+    const cookie = useChromeCookies();
+
+    // State
+    const [type, setType] = useState('');
+    const [checking, setChecking] = useState(false);
+    const [selected, setSelected] = useState('');
+    const [options, setOptions] = useState([]);
+
+    useEffect(() => {
+
+        if (options.length) return;
+        if (cookie?.value) {
+
+            fetchData(cookie?.value)
+                .then(({ lists }) => setOptions(lists));
+
+        }
+
+    }, [cookie, options]);
 
     // Hook Form
     const {
         handleSubmit,
         register,
         formState: { errors },
+        reset,
     } = useForm();
-
-    // State
-    const [type, setType] = useState('');
-    const [checking, setChecking] = useState(false);
-    const [selected, setSelected] = useState({ value : '' });
 
     // 工時種類
     const handleWorkLogTypeChanged = ({ target }) => {
@@ -86,24 +107,25 @@ const WorkLogForm = () => {
     };
 
     // Autocomplete change 事件: 給畫面用
-    const handleChangeOption = (value) => {
+    const handleChangeOption = (value) => setSelected(value);
 
-        console.log('change value:', value);
-        setSelected({
-            ...selected,
-            value,
-        });
+    // Rest
+    const handleResetForm = () => {
+
+        reset();
+        setType('');
+        setSelected('');
 
     };
 
     // 送資料
-    const handleReqData = (reqData) => {
+    const handleReqData = async(reqData) => {
 
         const today = dayjs().format('YYYY-MM-DD');
 
         reqData = {
             ...reqData,
-            taskId: '',
+            taskId: +selected.split('_')[0],
             workLogStartDate: today,
             workLogEndDate: today,
             workLogType: type,
@@ -116,11 +138,21 @@ const WorkLogForm = () => {
         setChecking(!type);
         if (!type) return;
 
-        console.log('reqData:', reqData);
+        await message.loading({
+            content: 'Loading...',
+            key: 'update',
+            duration: 1,
+        });
+
+        await Service.fillWorkLog(cookie?.value, reqData)
+            .then(() => {
+
+                handleResetForm();
+                message.success('更新成功');
+
+            });
 
     };
-
-    // console.log('selected:', selected);
 
     return (
 
@@ -142,10 +174,10 @@ const WorkLogForm = () => {
                     <AutoComplete
                         allowClear={true}
                         placeholder="請輸入項目或專案名稱"
-                        options={antdAutoCompleteOpts(arrangeList(fakeData))}
-                        value={selected.value.split('_')[0]}
+                        options={antdAutoCompleteOpts(arrangeList(options))}
+                        filterOption={!!selected && handleFilterOption}
+                        value={selected.split('_')[1]}
                         onChange={handleChangeOption}
-                        filterOption={handleFilterOption}
                     />
                 </FormRow>
 
@@ -189,7 +221,7 @@ const WorkLogForm = () => {
                     required
                     noBorder
                 >
-                    <RadioGroup onChange={handleWorkLogTypeChanged}>
+                    <RadioGroup onChange={handleWorkLogTypeChanged} value={type}>
                         {
                             workLogTypes.map(({
                                 id,
@@ -213,6 +245,10 @@ const WorkLogForm = () => {
                                     {
                                         (code === 'overtime' || code === 'overtime_honor') &&
                                             <span className="small-text">(限假日)</span>
+                                    }
+                                    {
+                                        (code === 'extra') &&
+                                            <span className="small-text">(限平日超過8H)</span>
                                     }
                                 </Radio>
 
